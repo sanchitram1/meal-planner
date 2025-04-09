@@ -1,33 +1,19 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-
-// User schema is kept as it might be needed in future
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
 
 // Define recipe schema
 export const recipes = pgTable("recipes", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   fileName: text("file_name").notNull(),
-  type: text("type").notNull(), // breakfast, lunch, dinner, etc.
-  cookTime: integer("cook_time"), // TODO: delete this
-  servings: integer("servings"),
-  serves: integer("serves"),
-  cuisine: text("cuisine"),
-  author: text("author"),
-  rating: integer("rating"),
-  content: text("content").notNull(), // The full markdown content
+  cuisine: text("cuisine").notNull(),
+  author: text("author").notNull(),
+  serves: integer("serves").notNull(),
   ingredients: jsonb("ingredients").notNull(),
+  rating: integer("rating").notNull(),
+  last: timestamp("last").notNull(),
+  content: text("content").notNull(),
   tags: text("tags").array().notNull(),
 });
 
@@ -58,22 +44,18 @@ export const recipeSchema = z.object({
   id: z.number().optional(),
   title: z.string(),
   fileName: z.string(),
-  type: z.string(),
-  cookTime: z.number().optional(),
-  servings: z.number().optional(),
-  serves: z.number().optional(),
-  cuisine: z.string().optional(),
-  author: z.string().optional(),
-  rating: z.number().optional(),
-  content: z.string(),
+  type: z.string().optional(), // Kept for backward compatibility
+  cuisine: z.string(),
+  author: z.string(),
+  serves: z.number(),
   ingredients: z.array(ingredientSchema),
+  rating: z.number(),
+  last: z.date().or(z.string()),
+  content: z.string(),
   tags: z.array(z.string()),
 });
 
 // Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
 export type Recipe = z.infer<typeof recipeSchema>;
 export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
 

@@ -1,7 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { DbStorage } from "./dbStorage";
 import { z } from "zod";
+
+// Initialize database storage 
+const dbStorage = new DbStorage();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -10,7 +14,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API endpoint to get all recipes
   app.get('/api/recipes', async (req, res) => {
     try {
-      const recipes = await storage.getAllRecipes();
+      const recipes = await dbStorage.getAllRecipes();
       res.json(recipes);
     } catch (error) {
       console.error('Error fetching recipes:', error);
@@ -22,7 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/recipes/:type', async (req, res) => {
     try {
       const { type } = req.params;
-      const recipes = await storage.getRecipesByType(type);
+      const recipes = await dbStorage.getRecipesByType(type);
       res.json(recipes);
     } catch (error) {
       console.error(`Error fetching ${req.params.type} recipes:`, error);
@@ -38,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid recipe ID' });
       }
       
-      const recipe = await storage.getRecipeById(id);
+      const recipe = await dbStorage.getRecipeById(id);
       if (!recipe) {
         return res.status(404).json({ error: 'Recipe not found' });
       }
@@ -73,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const mealPlan = await storage.generateMealPlan(breakfastIds, dinnerIds);
+      const mealPlan = await dbStorage.generateMealPlan(breakfastIds, dinnerIds);
       res.json(mealPlan);
     } catch (error) {
       console.error('Error generating meal plan:', error);
@@ -94,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { recipeIds } = result.data;
-      const groceryList = await storage.generateGroceryList(recipeIds);
+      const groceryList = await dbStorage.generateGroceryList(recipeIds);
       res.json(groceryList);
     } catch (error) {
       console.error('Error generating grocery list:', error);

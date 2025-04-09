@@ -1,14 +1,15 @@
-import { users, type User, type InsertUser, type Recipe, type Ingredient, type GroceryList, GroceryCategory } from "@shared/schema";
+import { type Recipe, type Ingredient, type GroceryList, GroceryCategory } from "@shared/schema";
 import { breakfastRecipes, dinnerRecipes, allRecipes } from "../client/src/data/sampleRecipes";
 import fs from 'fs';
 import path from 'path';
 import { parseRecipeFile, loadRecipesFromDirectory } from './recipeParser';
 
-// modify the interface with any CRUD methods you might need
+// Storage interface
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // User management methods (not used currently but kept for interface compatibility)
+  getUser(id: number): Promise<any | undefined>;
+  getUserByUsername(username: string): Promise<any | undefined>;
+  createUser(user: any): Promise<any>;
   
   // Recipe related methods
   getAllRecipes(): Promise<Recipe[]>;
@@ -21,7 +22,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
+  private users: Map<number, any>;
   private recipes: Map<number, Recipe>;
   currentId: number;
   currentRecipeId: number;
@@ -32,7 +33,7 @@ export class MemStorage implements IStorage {
     this.currentId = 1;
     this.currentRecipeId = 1;
     
-    // Load sample recipes into memory
+    // Load sample recipes into memory with default values for new required fields
     this.loadSampleRecipes();
     
     // Try to load recipes from the recipes directory if it exists
@@ -40,8 +41,18 @@ export class MemStorage implements IStorage {
   }
 
   private loadSampleRecipes() {
+    const currentDate = new Date().toISOString();
     allRecipes.forEach(recipe => {
-      this.recipes.set(recipe.id || this.currentRecipeId++, recipe);
+      // Add required fields for the new schema that might be missing in sample data
+      const enrichedRecipe = {
+        ...recipe,
+        author: recipe.author || "Unknown",
+        serves: recipe.serves || 4,
+        last: recipe.last || currentDate,
+        // Map 'type' to 'cuisine' if cuisine is not provided
+        cuisine: recipe.cuisine || recipe.type || "Unknown",
+      };
+      this.recipes.set(recipe.id || this.currentRecipeId++, enrichedRecipe);
     });
   }
 
@@ -61,21 +72,21 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: number): Promise<any | undefined> {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByUsername(username: string): Promise<any | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.username === username,
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(user: any): Promise<any> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const newUser = { ...user, id };
+    this.users.set(id, newUser);
+    return newUser;
   }
 
   async getAllRecipes(): Promise<Recipe[]> {
