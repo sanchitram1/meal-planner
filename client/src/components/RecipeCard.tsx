@@ -101,17 +101,10 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
           
           <div className="mt-2 flex flex-wrap gap-1">
             {recipe.rating && (
-              <div className="flex items-center">
-                <div className="flex space-x-0.5 mr-1">
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`h-3.5 w-3.5 ${i < (recipe.rating || 0) ? 'fill-amber-500 text-amber-500' : 'text-gray-300'}`} 
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-600">{recipe.rating}/7</span>
-              </div>
+              <Badge variant="secondary" className="bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-white" />
+                <span>{recipe.rating}/7</span>
+              </Badge>
             )}
             {recipe.cuisine && (
               <Badge variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary/90">
