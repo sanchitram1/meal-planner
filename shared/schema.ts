@@ -20,7 +20,7 @@ export const recipes = pgTable("recipes", {
   title: text("title").notNull(),
   fileName: text("file_name").notNull(),
   type: text("type").notNull(), // breakfast, lunch, dinner, etc.
-  cookTime: integer("cook_time"),
+  cookTime: integer("cook_time"), // TODO: delete this
   servings: integer("servings"),
   serves: integer("serves"),
   cuisine: text("cuisine"),
