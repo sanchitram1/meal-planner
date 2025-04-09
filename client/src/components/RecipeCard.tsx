@@ -120,7 +120,7 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
               </Badge>
             )}
             {recipe.cuisine && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary-foreground hover:bg-primary/20">
+              <Badge variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {recipe.cuisine}
               </Badge>
             )}
