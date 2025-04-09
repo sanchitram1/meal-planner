@@ -5,8 +5,7 @@ import {
   FlameIcon, 
   InfoIcon, 
   User, 
-  Utensils,
-  Star
+  Utensils
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Recipe } from "@shared/schema";
@@ -134,20 +133,6 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
                 <div className="flex items-center text-xs sm:text-sm">
                   <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-primary" />
                   <span>By: {recipe.author}</span>
-                </div>
-              )}
-              
-              {recipe.rating && (
-                <div className="flex items-center text-xs sm:text-sm">
-                  <div className="flex space-x-0.5 mr-1">
-                    {Array.from({ length: 7 }).map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`h-3 w-3 sm:h-4 sm:w-4 ${i < (recipe.rating || 0) ? 'fill-amber-500 text-amber-500' : 'text-gray-300'}`} 
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-1">Rating: {recipe.rating}/7</span>
                 </div>
               )}
             </div>
