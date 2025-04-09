@@ -136,3 +136,8 @@ The application will be available at http://localhost:5000.
 - [ ] feat: keep track of pantry / order history / grocery lists
 - [ ] feat: users
 - [ ] feat: track actual meals eaten
+- [ ] remove rating from the frontend
+- [ ] interface removes food and recipes on rendering
+
+- [ ] chore: make it much more mobile friendly
+- [ ] feat: a flow for adding recipes
