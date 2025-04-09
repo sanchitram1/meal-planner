@@ -24,8 +24,22 @@ export class DbStorage implements IStorage {
   }
 
   async getRecipesByType(type: string): Promise<Recipe[]> {
-    // Note: 'type' parameter is mapped to 'cuisine' column
-    const dbRecipes = await db.select().from(recipesTable).where(eq(recipesTable.cuisine, type));
+    // Assuming type is "breakfast" or "dinner", we'll filter by tags containing that word
+    let dbRecipes;
+    
+    if (type === 'breakfast' || type === 'dinner') {
+      // Use DB or application-level filtering based on 'type' tag
+      const allRecipes = await db.select().from(recipesTable);
+      dbRecipes = allRecipes.filter(recipe => {
+        // Check if the tags array contains the type (case-insensitive)
+        const tags = recipe.tags;
+        return tags.some(tag => tag.toLowerCase() === type.toLowerCase());
+      });
+    } else {
+      // Fallback to filtering by cuisine if not breakfast/dinner
+      dbRecipes = await db.select().from(recipesTable).where(eq(recipesTable.cuisine, type));
+    }
+    
     // Cast to Recipe type with proper ingredients handling
     return dbRecipes.map(recipe => ({
       ...recipe,
