@@ -263,6 +263,6 @@ function inArray(column: any, values: number[]): SQL<unknown> {
     return drizzleSql`${column} = -1 AND ${column} = -2`; // impossible condition
   }
   
-  // Use native SQL IN clause to avoid potential type issues
-  return drizzleSql`${column} IN (${values.join(',')})`;
+  // Ensure values is treated as an array of separate parameters, not a single string
+  return drizzleSql`${column} IN (${drizzleSql.join(values.map(v => drizzleSql`${v}`), drizzleSql`, `)})`;
 }
