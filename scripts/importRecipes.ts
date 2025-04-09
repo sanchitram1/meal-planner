@@ -2,8 +2,8 @@ import path from 'path';
 import fs from 'fs';
 import { Recipe } from '@shared/schema';
 import { parseRecipeFile, loadRecipesFromDirectory } from '../server/recipeParser';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
 import { recipes } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
@@ -27,8 +27,9 @@ async function importRecipes(directoryPath: string) {
       process.exit(1);
     }
     
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const db = drizzle(pool);
+    // Initialize database connection with neon-http driver
+    const sql = neon(process.env.DATABASE_URL);
+    const db = drizzle(sql);
     
     // Load all recipes from the directory
     console.log(`Loading recipes from ${directoryPath}...`);
@@ -90,8 +91,6 @@ async function importRecipes(directoryPath: string) {
     } else {
       console.error("❌ No recipes were imported successfully.");
     }
-    
-    await pool.end();
     
   } catch (error) {
     console.error("❌ Error importing recipes:", error);
