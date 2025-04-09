@@ -130,15 +130,17 @@ The application will be available at http://localhost:5000.
 ## Enhancements
 
 - [ ] feat: doordash order
-- [ ] feat: frontend improvements
 - [ ] feat: grocery list units and consistency
-- [ ] strategy: some Recipes are not breakfast / lunch / dinner, like Tadkas. They should not appear, but they should be clickable when you select Venn Pongal
-- [ ] feat: keep track of pantry / order history / grocery lists
+- [ ] feat: show Pongal Tadka (recipe ingredients) as clickable, when I see recipe for Venn Pongal (only recipe)
+- [ ] feat: track grocery lists, ingredients count?
 - [ ] feat: users
-- [ ] feat: track actual meals eaten
-- [ ] remove rating from the frontend
-- [ ] interface removes food and recipes on rendering
-
 - [ ] chore: make it much more mobile friendly
-- [ ] feat: a flow for adding recipes
-- [ ] 
+- [ ] feat: users can add recipes
+- [ ] feat: sync obsidian (plugin, template)
+- [x] feat: track meal plans
+- [x] feat: simplify flow to show plan for next `m` days
+
+### UX
+
+- remove `food` and recipes on rendering within info page
+- remove rating
