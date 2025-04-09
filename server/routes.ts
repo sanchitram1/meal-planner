@@ -69,19 +69,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { breakfastIds, dinnerIds } = result.data;
       
-      // Validate that we have the right number of meals
-      if (breakfastIds.length !== 5 || dinnerIds.length !== 5) {
+      // No longer enforcing exactly 5 of each recipe - can have variable numbers
+      if (breakfastIds.length === 0 && dinnerIds.length === 0) {
         return res.status(400).json({ 
           error: 'Invalid meal selection', 
-          message: 'Please select exactly 5 breakfast and 5 dinner recipes' 
+          message: 'Please select at least one recipe' 
         });
       }
       
+      // Number of days to plan for is the maximum of breakfast and dinner selections
+      const days = Math.max(breakfastIds.length, dinnerIds.length);
+      
       const mealPlan = await dbStorage.generateMealPlan(breakfastIds, dinnerIds);
-      res.json(mealPlan);
+      
+      // Only include the days we need based on selection count
+      const limitedMealPlan = mealPlan.slice(0, days);
+      
+      res.json(limitedMealPlan);
     } catch (error) {
       console.error('Error generating meal plan:', error);
       res.status(500).json({ error: 'Failed to generate meal plan' });
+    }
+  });
+  
+  // API endpoint to save a meal plan
+  app.post('/api/mealplan/save', async (req, res) => {
+    try {
+      const schema = z.object({
+        breakfastIds: z.array(z.number()),
+        dinnerIds: z.array(z.number()),
+        days: z.number().positive()
+      });
+      
+      const result = schema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: 'Invalid meal plan data', details: result.error });
+      }
+      
+      const { breakfastIds, dinnerIds, days } = result.data;
+      
+      const savedMealPlan = await dbStorage.saveMealPlan(breakfastIds, dinnerIds, days);
+      res.json(savedMealPlan);
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      res.status(500).json({ error: 'Failed to save meal plan' });
     }
   });
   

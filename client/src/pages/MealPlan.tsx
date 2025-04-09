@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +11,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Recipe } from "@shared/schema";
 import { getDayName, getDayDate } from "@/lib/utils";
-import { SunIcon, SunsetIcon, MoonIcon } from "lucide-react";
+import { SunIcon, SunsetIcon, MoonIcon, CheckCircle } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 type MealPlanProps = {
   mealPlan: Array<{
@@ -27,14 +28,60 @@ type MealPlanProps = {
 export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: MealPlanProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [planSaved, setPlanSaved] = useState(false);
   
   // Check if we have a valid meal plan
   const hasMealPlan = mealPlan && mealPlan.length > 0;
+  
+  // Function to save the meal plan
+  const handleSavePlan = async () => {
+    if (!hasMealPlan) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Extract breakfast and dinner IDs
+      const breakfastIds = mealPlan.map(day => day.breakfast?.id).filter(Boolean) as number[];
+      const dinnerIds = mealPlan.map(day => day.dinner?.id).filter(Boolean) as number[];
+      
+      // Use the number of days in the meal plan
+      const days = mealPlan.length;
+      
+      const response = await apiRequest(
+        'POST', 
+        '/api/mealplan/save', 
+        { breakfastIds, dinnerIds, days }
+      );
+      
+      if (response.ok) {
+        setPlanSaved(true);
+        toast({
+          title: "Plan Saved",
+          description: "Your meal plan has been saved successfully.",
+          variant: "default"
+        });
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to save plan");
+      }
+    } catch (error) {
+      console.error("Error saving meal plan:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your meal plan. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Weekly Meal Plan</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Meal Plan for {hasMealPlan ? mealPlan.length : 0} Day{hasMealPlan && mealPlan.length !== 1 ? 's' : ''}
+        </h2>
         <div className="mt-3 sm:mt-0 flex space-x-3">
           <Button
             variant="outline"
@@ -48,6 +95,21 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
           >
             View Grocery List
           </Button>
+          {hasMealPlan && (
+            <Button
+              onClick={handleSavePlan}
+              disabled={isLoading || planSaved}
+              className="gap-1"
+            >
+              {isLoading ? "Saving..." : planSaved ? (
+                <>
+                  <CheckCircle className="h-4 w-4" /> Saved
+                </>
+              ) : (
+                "Confirm Plan"
+              )}
+            </Button>
+          )}
         </div>
       </div>
 

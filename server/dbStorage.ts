@@ -124,6 +124,11 @@ export class DbStorage implements IStorage {
     const allIds = [...breakfastIds, ...dinnerIds];
     const recipeMap = new Map<number, Recipe>();
     
+    // Handle the case where no recipes were selected
+    if (allIds.length === 0) {
+      return [];
+    }
+    
     const dbRecipes = await db.select()
       .from(recipesTable)
       .where(inArray(recipesTable.id, allIds));
@@ -138,21 +143,30 @@ export class DbStorage implements IStorage {
       recipeMap.set(dbRecipe.id, recipe);
     });
     
-    // Create a 7-day meal plan (Monday to Sunday)
+    // Determine number of days based on selection counts
+    // We'll still create 7 days but the caller can choose to use fewer
+    const maxDays = 7;
     const mealPlan = [];
-    for (let i = 0; i < 7; i++) {
-      const breakfastId = breakfastIds[i % breakfastIds.length];
-      const dinnerId = dinnerIds[i % dinnerIds.length];
+    
+    for (let i = 0; i < maxDays; i++) {
+      // Get breakfast for this day (if any)
+      const breakfast = breakfastIds.length > 0 
+        ? recipeMap.get(breakfastIds[i % breakfastIds.length])
+        : null;
       
-      const breakfast = recipeMap.get(breakfastId);
-      const dinner = recipeMap.get(dinnerId);
+      // Get dinner for this day (if any)
+      const dinner = dinnerIds.length > 0
+        ? recipeMap.get(dinnerIds[i % dinnerIds.length])
+        : null;
       
       // For lunch:
-      // - Monday (day 0): leave lunch empty
-      // - Other days: use previous day's dinner
-      const lunch = i === 0 
-        ? null // Monday has no lunch
-        : recipeMap.get(dinnerIds[(i - 1) % dinnerIds.length]);
+      // - Day 0: leave lunch empty
+      // - Other days: use previous day's dinner if available
+      let lunch = null;
+      if (i > 0 && dinnerIds.length > 0) {
+        const prevDinnerIndex = (i - 1) % dinnerIds.length;
+        lunch = recipeMap.get(dinnerIds[prevDinnerIndex]);
+      }
       
       mealPlan.push({
         day: i,
@@ -209,6 +223,23 @@ export class DbStorage implements IStorage {
     });
     
     return groceryList;
+  }
+
+  // Save meal plan to database
+  async saveMealPlan(breakfastIds: number[], dinnerIds: number[], days: number): Promise<any> {
+    try {
+      // Insert meal plan record
+      const result = await db.insert(mealPlansTable).values({
+        breakfastIds: breakfastIds.map(id => id.toString()),
+        dinnerIds: dinnerIds.map(id => id.toString()),
+        days: days
+      }).returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      throw error;
+    }
   }
 
   // These methods aren't used in the current app but are needed to satisfy the interface

@@ -27,10 +27,13 @@ export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   breakfastIds: text("breakfast_ids").array().notNull(),
   dinnerIds: text("dinner_ids").array().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  days: integer("days").notNull(),
 });
 
 export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({
   id: true,
+  createdAt: true,
 });
 
 // Define ingredient schema

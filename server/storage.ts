@@ -19,6 +19,7 @@ export interface IStorage {
   // Meal planning related methods
   generateMealPlan(breakfastIds: number[], dinnerIds: number[]): Promise<any>;
   generateGroceryList(recipeIds: number[]): Promise<GroceryList>;
+  saveMealPlan(breakfastIds: number[], dinnerIds: number[], days: number): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -107,18 +108,35 @@ export class MemStorage implements IStorage {
     const breakfasts = breakfastIds.map(id => this.recipes.get(id)).filter(Boolean) as Recipe[];
     const dinners = dinnerIds.map(id => this.recipes.get(id)).filter(Boolean) as Recipe[];
     
-    // Create a 7-day meal plan (Monday to Sunday)
+    // Handle the case where no recipes were selected
+    if (breakfasts.length === 0 && dinners.length === 0) {
+      return [];
+    }
+    
+    // Determine number of days based on selection counts
+    // We'll still create 7 days but the caller can choose to use fewer
+    const maxDays = 7;
     const mealPlan = [];
-    for (let i = 0; i < 7; i++) {
-      const breakfast = breakfasts[i % breakfasts.length];
-      const dinner = dinners[i % dinners.length];
+    
+    for (let i = 0; i < maxDays; i++) {
+      // Get breakfast for this day (if any)
+      const breakfast = breakfasts.length > 0 
+        ? breakfasts[i % breakfasts.length]
+        : null;
+      
+      // Get dinner for this day (if any)
+      const dinner = dinners.length > 0
+        ? dinners[i % dinners.length]
+        : null;
       
       // For lunch:
-      // - Monday (day 0): leave lunch empty
-      // - Other days: use previous day's dinner
-      const lunch = i === 0 
-        ? null // Monday has no lunch
-        : dinners[(i - 1) % dinners.length];
+      // - Day 0: leave lunch empty
+      // - Other days: use previous day's dinner if available
+      let lunch = null;
+      if (i > 0 && dinners.length > 0) {
+        const prevDinnerIndex = (i - 1) % dinners.length;
+        lunch = dinners[prevDinnerIndex];
+      }
       
       mealPlan.push({
         day: i,
@@ -171,6 +189,20 @@ export class MemStorage implements IStorage {
     });
     
     return groceryList;
+  }
+  
+  async saveMealPlan(breakfastIds: number[], dinnerIds: number[], days: number): Promise<any> {
+    // In-memory storage implementation - this would be persisted to a database in DbStorage
+    const mealPlan = {
+      id: this.currentId++,
+      breakfastIds: breakfastIds.map(id => id.toString()),
+      dinnerIds: dinnerIds.map(id => id.toString()),
+      days,
+      createdAt: new Date()
+    };
+    
+    // Return the created meal plan
+    return mealPlan;
   }
 }
 

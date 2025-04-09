@@ -141,3 +141,4 @@ The application will be available at http://localhost:5000.
 
 - [ ] chore: make it much more mobile friendly
 - [ ] feat: a flow for adding recipes
+- [ ] 

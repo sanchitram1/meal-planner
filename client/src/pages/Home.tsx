@@ -58,15 +58,8 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
       const isSelected = prev.some(r => r.id === recipe.id);
       if (isSelected) {
         return prev.filter(r => r.id !== recipe.id);
-      } else if (prev.length < 5) {
-        return [...prev, recipe];
       } else {
-        toast({
-          title: "Selection limit reached",
-          description: "You can only select 5 breakfast recipes.",
-          variant: "default"
-        });
-        return prev;
+        return [...prev, recipe];
       }
     });
   };
@@ -77,25 +70,18 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
       const isSelected = prev.some(r => r.id === recipe.id);
       if (isSelected) {
         return prev.filter(r => r.id !== recipe.id);
-      } else if (prev.length < 5) {
-        return [...prev, recipe];
       } else {
-        toast({
-          title: "Selection limit reached",
-          description: "You can only select 5 dinner recipes.",
-          variant: "default"
-        });
-        return prev;
+        return [...prev, recipe];
       }
     });
   };
 
   // Handle generate meal plan
   const handleGeneratePlan = async () => {
-    if (selectedBreakfasts.length !== 5 || selectedDinners.length !== 5) {
+    if (selectedBreakfasts.length === 0 && selectedDinners.length === 0) {
       toast({
-        title: "Incomplete selection",
-        description: "Please select exactly 5 breakfast and 5 dinner recipes.",
+        title: "No recipes selected",
+        description: "Please select at least one breakfast or dinner recipe.",
         variant: "destructive"
       });
       return;
@@ -124,11 +110,11 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
         <h2 className="text-2xl font-bold text-gray-900">Select Your Recipes</h2>
         <div className="mt-3 sm:mt-0 flex space-x-3 items-center">
           <div className="text-sm text-gray-500">
-            Selected: <span className="font-medium">{selectedBreakfasts.length}/5 Breakfasts, {selectedDinners.length}/5 Dinners</span>
+            Selected: <span className="font-medium">{selectedBreakfasts.length} Breakfasts, {selectedDinners.length} Dinners</span>
           </div>
           <Button
             onClick={handleGeneratePlan}
-            disabled={selectedBreakfasts.length !== 5 || selectedDinners.length !== 5}
+            disabled={selectedBreakfasts.length === 0 && selectedDinners.length === 0}
             className="transition"
           >
             Generate Plan
@@ -138,8 +124,8 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-blue-800 text-sm">
-          <strong>Tip:</strong> The order you select recipes will determine their placement in your weekly meal plan. 
-          The numbers shown on selected recipes indicate their order in the week (1-5).
+          <strong>Tip:</strong> The order you select recipes will determine their placement in your meal plan. 
+          The numbers shown on selected recipes indicate their order. Your plan will cover {Math.max(selectedBreakfasts.length, selectedDinners.length)} day(s).
         </p>
       </div>
 
