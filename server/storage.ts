@@ -96,16 +96,18 @@ export class MemStorage implements IStorage {
     const breakfasts = breakfastIds.map(id => this.recipes.get(id)).filter(Boolean) as Recipe[];
     const dinners = dinnerIds.map(id => this.recipes.get(id)).filter(Boolean) as Recipe[];
     
-    // Create a 7-day meal plan
+    // Create a 7-day meal plan (Monday to Sunday)
     const mealPlan = [];
     for (let i = 0; i < 7; i++) {
       const breakfast = breakfasts[i % breakfasts.length];
       const dinner = dinners[i % dinners.length];
       
-      // For lunch, use previous day's dinner (for Monday, use Sunday's dinner)
-      const lunch = i > 0 
-        ? dinners[(i - 1) % dinners.length] 
-        : dinners[dinners.length - 1];
+      // For lunch:
+      // - Monday (day 0): leave lunch empty
+      // - Other days: use previous day's dinner
+      const lunch = i === 0 
+        ? null // Monday has no lunch
+        : dinners[(i - 1) % dinners.length];
       
       mealPlan.push({
         day: i,

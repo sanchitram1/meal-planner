@@ -107,14 +107,13 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
                     )}
                   </TableCell>
                   <TableCell>
-                    {day.lunch && (
+                    {day.lunch ? (
                       <div className="flex items-center">
                         <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                         <span>{day.lunch.title}</span>
-                        {day.day > 0 && (
-                          <span className="text-xs text-gray-500 ml-2">(Yesterday's dinner)</span>
-                        )}
                       </div>
+                    ) : (
+                      <span className="text-gray-400 italic">No lunch</span>
                     )}
                   </TableCell>
                   <TableCell>

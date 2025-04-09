@@ -19,19 +19,19 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
 
   // Fetch breakfast recipes
   const { 
-    data: breakfastRecipes = [],
+    data: breakfastRecipes = [] as Recipe[],
     isLoading: isLoadingBreakfasts,
     error: breakfastError
-  } = useQuery({
+  } = useQuery<Recipe[]>({
     queryKey: ['/api/recipes/breakfast'],
   });
 
   // Fetch dinner recipes
   const { 
-    data: dinnerRecipes = [],
+    data: dinnerRecipes = [] as Recipe[],
     isLoading: isLoadingDinners,
     error: dinnerError
-  } = useQuery({
+  } = useQuery<Recipe[]>({
     queryKey: ['/api/recipes/dinner'],
   });
 
@@ -107,12 +107,16 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
     setCurrentView('planner');
   };
 
-  // Check if a recipe is selected
-  const isBreakfastSelected = (recipe: Recipe) => 
-    selectedBreakfasts.some(r => r.id === recipe.id);
+  // Check if a recipe is selected and get its selection order number
+  const getBreakfastSelectionNumber = (recipe: Recipe): number | undefined => {
+    const index = selectedBreakfasts.findIndex(r => r.id === recipe.id);
+    return index !== -1 ? index + 1 : undefined;
+  };
   
-  const isDinnerSelected = (recipe: Recipe) => 
-    selectedDinners.some(r => r.id === recipe.id);
+  const getDinnerSelectionNumber = (recipe: Recipe): number | undefined => {
+    const index = selectedDinners.findIndex(r => r.id === recipe.id);
+    return index !== -1 ? index + 1 : undefined;
+  };
 
   return (
     <div className="space-y-8">
@@ -130,6 +134,13 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
             Generate Plan
           </Button>
         </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-blue-800 text-sm">
+          <strong>Tip:</strong> The order you select recipes will determine their placement in your weekly meal plan. 
+          The numbers shown on selected recipes indicate their order in the week (1-5).
+        </p>
       </div>
 
       {/* Breakfast Selection */}
@@ -150,7 +161,8 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                isSelected={isBreakfastSelected(recipe)}
+                isSelected={getBreakfastSelectionNumber(recipe) !== undefined}
+                selectionNumber={getBreakfastSelectionNumber(recipe)}
                 onClick={() => toggleBreakfastSelection(recipe)}
               />
             ))}
@@ -176,7 +188,8 @@ export default function Home({ onGeneratePlan, setCurrentView }: HomeProps) {
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                isSelected={isDinnerSelected(recipe)}
+                isSelected={getDinnerSelectionNumber(recipe) !== undefined}
+                selectionNumber={getDinnerSelectionNumber(recipe)}
                 onClick={() => toggleDinnerSelection(recipe)}
               />
             ))}
