@@ -34,48 +34,56 @@ npx drizzle-kit generate
 echo "🔄 Pushing schema changes to database..."
 npm run db:push || { echo "❌ Failed to push schema changes"; exit 1; }
 
+# Display validation requirements
+echo
+echo "📋 Recipe validation requirements:"
+echo "  • Must have at least one meal type tag (breakfast, lunch, dinner)"
+echo "  • Must not contain TODO items (- [ ] TODO)"
+echo "  • Already imported files will be skipped"
+echo
+
 # Run the import script
-echo "📥 Starting recipe import..."
+echo "📥 Starting recipe import with validation..."
 npx tsx scripts/importRecipes.ts "$RECIPE_DIR"
 
 echo 
 echo "✅ Recipe import process complete!"
 echo
 
-# Show imported recipes
-echo "📊 Displaying imported recipes:"
+# Show count of recipes in the database
+echo "📊 Recipes in database:"
 echo "---------------------------------------"
 npx tsx -e "
-  import { drizzle } from 'drizzle-orm/neon-serverless';
-  import { Pool } from '@neondatabase/serverless';
+  import { drizzle } from 'drizzle-orm/neon-http';
+  import { neon } from '@neondatabase/serverless';
   import { recipes } from './shared/schema';
-
-  async function showRecipes() {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const db = drizzle(pool);
+  import { sql } from 'drizzle-orm';
+  
+  async function countRecipes() {
+    const client = neon(process.env.DATABASE_URL);
+    const db = drizzle(client);
     
-    const allRecipes = await db.select({
-      id: recipes.id,
-      title: recipes.title,
-      type: recipes.type,
-      cuisine: recipes.cuisine,
-      tags: recipes.tags
-    })
-    .from(recipes)
-    .orderBy(recipes.title);
+    const totalCount = await db.select({ count: sql\`count(*)\` }).from(recipes);
     
-    console.table(allRecipes.map(r => ({
-      id: r.id,
-      title: r.title,
-      type: r.type,
-      cuisine: r.cuisine,
-      tags: r.tags.join(', ')
-    })));
+    const breakfastCount = await db.select({ count: sql\`count(*)\` })
+      .from(recipes)
+      .where(sql\`'breakfast' = ANY(tags)\`);
+      
+    const lunchCount = await db.select({ count: sql\`count(*)\` })
+      .from(recipes)
+      .where(sql\`'lunch' = ANY(tags)\`);
+      
+    const dinnerCount = await db.select({ count: sql\`count(*)\` })
+      .from(recipes)
+      .where(sql\`'dinner' = ANY(tags)\`);
     
-    await pool.end();
+    console.log(\`Total recipes: \${totalCount[0].count}\`);
+    console.log(\`Breakfast recipes: \${breakfastCount[0].count}\`);
+    console.log(\`Lunch recipes: \${lunchCount[0].count}\`);
+    console.log(\`Dinner recipes: \${dinnerCount[0].count}\`);
   }
   
-  showRecipes();
+  countRecipes().catch(console.error);
 "
 echo "---------------------------------------"
 echo
