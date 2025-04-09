@@ -123,3 +123,13 @@ npm run dev
 ```
 
 The application will be available at http://localhost:5000.
+
+## Enhancements
+
+- [ ] feat: doordash order
+- [ ] feat: frontend improvements
+- [ ] feat: grocery list units and consistency
+- [ ] strategy: some Recipes are not breakfast / lunch / dinner, like Tadkas. They should not appear, but they should be clickable when you select Venn Pongal
+- [ ] feat: keep track of pantry / order history / grocery lists
+- [ ] feat: users
+- [ ] feat: track actual meals eaten
