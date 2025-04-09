@@ -150,21 +150,21 @@ export class DbStorage implements IStorage {
     
     for (let i = 0; i < maxDays; i++) {
       // Get breakfast for this day (if any)
-      const breakfast = breakfastIds.length > 0 
-        ? recipeMap.get(breakfastIds[i % breakfastIds.length])
+      const breakfast = breakfastIds.length > 0 && i < breakfastIds.length
+        ? recipeMap.get(breakfastIds[i])
         : null;
       
       // Get dinner for this day (if any)
-      const dinner = dinnerIds.length > 0
-        ? recipeMap.get(dinnerIds[i % dinnerIds.length])
+      const dinner = dinnerIds.length > 0 && i < dinnerIds.length
+        ? recipeMap.get(dinnerIds[i])
         : null;
       
       // For lunch:
       // - Day 0: leave lunch empty
       // - Other days: use previous day's dinner if available
       let lunch = null;
-      if (i > 0 && dinnerIds.length > 0) {
-        const prevDinnerIndex = (i - 1) % dinnerIds.length;
+      if (i > 0 && dinnerIds.length > 0 && i-1 < dinnerIds.length) {
+        const prevDinnerIndex = i - 1;
         lunch = recipeMap.get(dinnerIds[prevDinnerIndex]);
       }
       

@@ -120,21 +120,21 @@ export class MemStorage implements IStorage {
     
     for (let i = 0; i < maxDays; i++) {
       // Get breakfast for this day (if any)
-      const breakfast = breakfasts.length > 0 
-        ? breakfasts[i % breakfasts.length]
+      const breakfast = breakfasts.length > 0 && i < breakfasts.length
+        ? breakfasts[i]
         : null;
       
       // Get dinner for this day (if any)
-      const dinner = dinners.length > 0
-        ? dinners[i % dinners.length]
+      const dinner = dinners.length > 0 && i < dinners.length
+        ? dinners[i]
         : null;
       
       // For lunch:
       // - Day 0: leave lunch empty
       // - Other days: use previous day's dinner if available
       let lunch = null;
-      if (i > 0 && dinners.length > 0) {
-        const prevDinnerIndex = (i - 1) % dinners.length;
+      if (i > 0 && dinners.length > 0 && i-1 < dinners.length) {
+        const prevDinnerIndex = i - 1;
         lunch = dinners[prevDinnerIndex];
       }
       
