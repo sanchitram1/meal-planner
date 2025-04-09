@@ -18,48 +18,90 @@ export class DbStorage implements IStorage {
     return dbRecipes.map(recipe => ({
       ...recipe,
       ingredients: recipe.ingredients as unknown as Ingredient[],
-      // Ensure type is available for backward compatibility
-      type: recipe.cuisine
+      // Use the type field if available, otherwise fallback to cuisine
+      type: recipe.type || recipe.cuisine
     }));
   }
 
   async getRecipesByType(type: string): Promise<Recipe[]> {
-    // Assuming type is "breakfast" or "dinner", we'll filter by tags containing that word
+    // We'll check multiple fields to support various recipe formats
     let dbRecipes;
     
+    // Get all recipes first
+    const allRecipes = await db.select().from(recipesTable);
+    
+    // For breakfast and dinner, check both explicit fields and tags
     if (type === 'breakfast' || type === 'dinner') {
-      // First, check if we have any recipes where the cuisine exactly matches the type
-      const cuisineRecipes = await db.select()
-        .from(recipesTable)
-        .where(eq(recipesTable.cuisine, type));
-      
-      // Also get recipes that have the type in their tags
-      const allRecipes = await db.select().from(recipesTable);
-      const tagRecipes = allRecipes.filter(recipe => {
-        // Check if the tags array contains the type (case-insensitive)
-        const tags = recipe.tags;
-        return tags.some(tag => tag.toLowerCase() === type.toLowerCase());
+      // Filter recipes where any of the following are true:
+      // 1. cuisine matches the type exactly
+      // 2. type field matches the type exactly
+      // 3. tags contain the type (case-insensitive)
+      // 4. content contains the word (for Obsidian recipes with text mentions)
+      const matchingRecipes = allRecipes.filter(recipe => {
+        // Check if cuisine matches
+        if (recipe.cuisine && recipe.cuisine.toLowerCase() === type.toLowerCase()) {
+          return true;
+        }
+        
+        // Check if type field matches
+        if (recipe.type && recipe.type.toLowerCase() === type.toLowerCase()) {
+          return true;
+        }
+        
+        // Check if the tags array contains the type
+        if (recipe.tags && recipe.tags.some(tag => tag.toLowerCase() === type.toLowerCase())) {
+          return true;
+        }
+        
+        // Check if the content mentions this type prominently
+        if (recipe.content && recipe.content.toLowerCase().includes(type.toLowerCase())) {
+          // Only count this as a match if the word appears as a whole word 
+          // (to avoid matching 'breakfast' in 'breakfast-like')
+          const contentLower = recipe.content.toLowerCase();
+          const regex = new RegExp(`\\b${type.toLowerCase()}\\b`);
+          return regex.test(contentLower);
+        }
+        
+        return false;
       });
       
-      // Combine both sets, ensuring no duplicates
-      const recipeIds = new Set();
-      dbRecipes = [...cuisineRecipes, ...tagRecipes].filter(recipe => {
-        if (recipeIds.has(recipe.id)) return false;
-        recipeIds.add(recipe.id);
-        return true;
-      });
+      dbRecipes = matchingRecipes;
       
-      console.log(`Found ${cuisineRecipes.length} ${type} recipes by cuisine and ${tagRecipes.length} by tags (${dbRecipes.length} total unique)`);
+      console.log(`Found ${dbRecipes.length} ${type} recipes through various criteria`);
     } else {
-      // Fallback to filtering by cuisine if not breakfast/dinner
-      dbRecipes = await db.select().from(recipesTable).where(eq(recipesTable.cuisine, type));
+      // For other types (like 'South Indian'), check fields with more flexible matching
+      const matchingRecipes = allRecipes.filter(recipe => {
+        // Check cuisine with exact match
+        if (recipe.cuisine && recipe.cuisine.toLowerCase() === type.toLowerCase()) {
+          return true;
+        }
+        
+        // Check type with exact match
+        if (recipe.type && recipe.type.toLowerCase() === type.toLowerCase()) {
+          return true;
+        }
+        
+        // Check tags with partial matches
+        if (recipe.tags && recipe.tags.some(tag => {
+          return tag.toLowerCase() === type.toLowerCase() || 
+                 tag.toLowerCase().includes(type.toLowerCase()) ||
+                 type.toLowerCase().includes(tag.toLowerCase());
+        })) {
+          return true;
+        }
+        
+        return false;
+      });
+      
+      dbRecipes = matchingRecipes;
+      console.log(`Found ${dbRecipes.length} ${type} recipes by broader criteria`);
     }
     
     // Cast to Recipe type with proper ingredients handling
     return dbRecipes.map(recipe => ({
       ...recipe,
       ingredients: recipe.ingredients as unknown as Ingredient[],
-      type: recipe.cuisine
+      type: recipe.type || recipe.cuisine // Use the existing type if available
     }));
   }
 
@@ -72,7 +114,7 @@ export class DbStorage implements IStorage {
     return {
       ...recipe,
       ingredients: recipe.ingredients as unknown as Ingredient[],
-      type: recipe.cuisine
+      type: recipe.type || recipe.cuisine
     };
   }
   
@@ -91,7 +133,7 @@ export class DbStorage implements IStorage {
       const recipe: Recipe = {
         ...dbRecipe,
         ingredients: dbRecipe.ingredients as unknown as Ingredient[],
-        type: dbRecipe.cuisine
+        type: dbRecipe.type || dbRecipe.cuisine
       };
       recipeMap.set(dbRecipe.id, recipe);
     });
@@ -190,15 +232,6 @@ function inArray(column: any, values: number[]): SQL<unknown> {
     return drizzleSql`${column} = -1 AND ${column} = -2`; // impossible condition
   }
   
-  // For a single value, just use equals
-  if (values.length === 1) {
-    return eq(column, values[0]);
-  }
-  
-  // For multiple values, construct OR conditions manually
-  let condition: SQL<unknown> = eq(column, values[0]);
-  for (let i = 1; i < values.length; i++) {
-    condition = or(condition, eq(column, values[i]));
-  }
-  return condition;
+  // Use native SQL IN clause to avoid potential type issues
+  return drizzleSql`${column} IN (${values.join(',')})`;
 }

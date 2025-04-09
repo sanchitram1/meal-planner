@@ -1,13 +1,11 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 import path from 'path';
 import fs from 'fs';
-import { recipes as recipesTable, Recipe } from '@shared/schema';
+import { Recipe } from '@shared/schema';
 import { parseRecipeFile, loadRecipesFromDirectory } from '../server/recipeParser';
-
-// Initialize database connection with neon-http driver
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool } from '@neondatabase/serverless';
+import { recipes } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Import recipes from markdown files into the database
@@ -23,50 +21,78 @@ async function importRecipes(directoryPath: string) {
       process.exit(1);
     }
     
+    // Set up database connection
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL environment variable is not set');
+      process.exit(1);
+    }
+    
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const db = drizzle(pool);
+    
     // Load all recipes from the directory
-    const recipes = loadRecipesFromDirectory(directoryPath);
-    console.log(`Found ${recipes.length} recipes in ${directoryPath}`);
+    console.log(`Loading recipes from ${directoryPath}...`);
+    const recipeObjects = loadRecipesFromDirectory(directoryPath);
+    console.log(`Found ${recipeObjects.length} recipe files`);
     
-    if (recipes.length === 0) {
-      console.log("No recipes found to import.");
-      return;
+    if (recipeObjects.length === 0) {
+      console.warn("No valid recipes found in the directory");
+      process.exit(0);
     }
     
-    // Format recipes for database insertion
-    const formattedRecipes = recipes.map(recipe => {
-      // Set default values for required fields that might be missing
-      const currentDate = new Date();
-      
-      // Handle the servings conversion (some recipes might use 'servings' instead of 'serves')
-      const servings = (recipe as any).servings || 4;
-      
-      return {
-        title: recipe.title,
-        fileName: recipe.fileName || path.basename(recipe.title, '.md'),
-        cuisine: recipe.cuisine || recipe.type || "Unknown",
-        author: recipe.author || "Unknown",
-        serves: recipe.serves || servings,
-        ingredients: recipe.ingredients,
-        rating: recipe.rating || 0,
-        last: currentDate,
-        content: recipe.content || "",
-        tags: Array.isArray(recipe.tags) ? recipe.tags : 
-              (recipe.type ? [recipe.type] : ["other"])
-      };
-    });
+    let successCount = 0;
+    let errorCount = 0;
     
-    // Insert recipes into the database
-    console.log(`Inserting ${formattedRecipes.length} recipes into the database...`);
-    
-    // Insert recipes in batches to avoid overwhelming the database
-    const batchSize = 50;
-    for (let i = 0; i < formattedRecipes.length; i += batchSize) {
-      const batch = formattedRecipes.slice(i, i + batchSize);
-      await db.insert(recipesTable).values(batch);
-      console.log(`Inserted batch ${i/batchSize + 1} of ${Math.ceil(formattedRecipes.length/batchSize)}`);
+    // Process each recipe individually for better error handling
+    for (const recipe of recipeObjects) {
+      try {
+        const recipeToInsert = {
+          ...recipe,
+          type: recipe.type || 'other',
+          last: new Date(recipe.last)
+        };
+        
+        // Check if recipe already exists
+        const existingRecipe = await db.select()
+          .from(recipes)
+          .where(eq(recipes.fileName, recipe.fileName))
+          .limit(1);
+        
+        if (existingRecipe.length > 0) {
+          // Update existing recipe
+          await db.update(recipes)
+            .set(recipeToInsert)
+            .where(eq(recipes.fileName, recipe.fileName));
+        } else {
+          // Insert new recipe
+          await db.insert(recipes).values(recipeToInsert);
+        }
+        
+        successCount++;
+        console.log(`Successfully imported: ${recipe.title}`);
+      } catch (err) {
+        errorCount++;
+        console.error(`Failed to import recipe: ${recipe.title}`, err);
+      }
+      
+      // Short delay to avoid database overload
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     
-    console.log("✅ Recipe import completed successfully!");
+    console.log(`\n========== IMPORT SUMMARY ==========`);
+    console.log(`Total recipes found: ${recipeObjects.length}`);
+    console.log(`Successfully imported: ${successCount}`);
+    console.log(`Failed to import: ${errorCount}`);
+    console.log(`====================================\n`);
+    
+    if (successCount > 0) {
+      console.log("🎉 Recipe import complete! Your recipes are now available in the app.");
+    } else {
+      console.error("❌ No recipes were imported successfully.");
+    }
+    
+    await pool.end();
+    
   } catch (error) {
     console.error("❌ Error importing recipes:", error);
     process.exit(1);
@@ -74,12 +100,5 @@ async function importRecipes(directoryPath: string) {
 }
 
 // Check if directory path is provided as command line argument
-const directoryPath = process.argv[2];
-if (!directoryPath) {
-  console.error("Please provide the path to your recipe markdown files.");
-  console.error("Usage: npm run import-recipes -- /path/to/your/recipes");
-  process.exit(1);
-}
-
-// Run the import function
+const directoryPath = process.argv[2] || 'recipes';
 importRecipes(directoryPath);

@@ -7,6 +7,7 @@ export const recipes = pgTable("recipes", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   fileName: text("file_name").notNull(),
+  type: text("type").notNull(),
   cuisine: text("cuisine").notNull(),
   author: text("author").notNull(),
   serves: integer("serves").notNull(),
