@@ -99,36 +99,25 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
             </div>
           </div>
           
-          <p className="mt-1 text-sm text-gray-600">
-            <span className="inline-flex items-center">
-              <Clock className="mr-1 h-3.5 w-3.5" />
-              <span>{recipe.prepTime} min</span>
-            </span>
-            {recipe.calories && (
-              <span className="inline-flex items-center ml-3">
-                <FlameIcon className="mr-1 h-3.5 w-3.5" />
-                <span>{recipe.calories} cal</span>
-              </span>
-            )}
-          </p>
-          
           <div className="mt-2 flex flex-wrap gap-1">
             {recipe.rating && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200 flex items-center">
-                <Star className="h-3 w-3 fill-amber-500 text-amber-500 mr-1" />
-                {recipe.rating}/10
-              </Badge>
+              <div className="flex items-center">
+                <div className="flex space-x-0.5 mr-1">
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`h-3.5 w-3.5 ${i < (recipe.rating || 0) ? 'fill-amber-500 text-amber-500' : 'text-gray-300'}`} 
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-600">{recipe.rating}/7</span>
+              </div>
             )}
             {recipe.cuisine && (
               <Badge variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {recipe.cuisine}
               </Badge>
             )}
-            {recipe.tags.slice(0, 1).map(tag => (
-              <Badge key={tag} variant="outline" className="bg-gray-100 hover:bg-gray-200">
-                {tag}
-              </Badge>
-            ))}
           </div>
         </CardContent>
       </Card>
@@ -149,17 +138,10 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
                 </div>
               )}
               
-              {recipe.prepTime && (
+              {recipe.cookTime && (
                 <div className="flex items-center text-sm">
                   <Clock className="h-4 w-4 mr-1 text-primary" />
-                  <span>Prep: {recipe.prepTime} min</span>
-                </div>
-              )}
-              
-              {recipe.calories && (
-                <div className="flex items-center text-sm">
-                  <FlameIcon className="h-4 w-4 mr-1 text-primary" />
-                  <span>{recipe.calories} calories</span>
+                  <span>Cook: {recipe.cookTime} min</span>
                 </div>
               )}
               
@@ -178,8 +160,15 @@ export function RecipeCard({ recipe, isSelected, selectionNumber, onClick }: Rec
               
               {recipe.rating && (
                 <div className="flex items-center text-sm">
-                  <Star className="h-4 w-4 mr-1 fill-amber-500 text-amber-500" />
-                  <span>Rating: {recipe.rating}/10</span>
+                  <div className="flex space-x-0.5 mr-1">
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`h-4 w-4 ${i < (recipe.rating || 0) ? 'fill-amber-500 text-amber-500' : 'text-gray-300'}`} 
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-1">Rating: {recipe.rating}/7</span>
                 </div>
               )}
             </div>

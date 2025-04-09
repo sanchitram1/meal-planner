@@ -7,9 +7,8 @@ export const breakfastRecipes: Recipe[] = [
     title: 'Overnight Oats',
     fileName: 'overnight-oats.md',
     type: 'breakfast',
-    prepTime: 10,
-    calories: 350,
     cuisine: 'American',
+    rating: 5,
     content: `
 # Overnight Oats
 
@@ -36,9 +35,8 @@ Simple and nutritious breakfast prepared the night before.
     title: 'Avocado Toast',
     fileName: 'avocado-toast.md',
     type: 'breakfast',
-    prepTime: 5,
-    calories: 300,
     cuisine: 'Modern',
+    rating: 6,
     content: `
 # Avocado Toast
 
@@ -65,9 +63,8 @@ A modern classic that's both healthy and delicious.
     title: 'Greek Yogurt Parfait',
     fileName: 'greek-yogurt-parfait.md',
     type: 'breakfast',
-    prepTime: 5,
-    calories: 250,
     cuisine: 'Mediterranean',
+    rating: 4,
     content: `
 # Greek Yogurt Parfait
 
@@ -91,9 +88,8 @@ A protein-rich breakfast option.
     title: 'Spinach Omelette',
     fileName: 'spinach-omelette.md',
     type: 'breakfast',
-    prepTime: 15,
-    calories: 320,
     cuisine: 'French',
+    rating: 6,
     content: `
 # Spinach Omelette
 
@@ -121,9 +117,8 @@ A protein-packed breakfast.
     title: 'Banana Smoothie Bowl',
     fileName: 'banana-smoothie-bowl.md',
     type: 'breakfast',
-    prepTime: 8,
-    calories: 380,
     cuisine: 'Fusion',
+    rating: 5,
     content: `
 # Banana Smoothie Bowl
 
@@ -149,9 +144,8 @@ A refreshing and filling breakfast.
     title: 'Cottage Cheese & Fruit',
     fileName: 'cottage-cheese-fruit.md',
     type: 'breakfast',
-    prepTime: 3,
-    calories: 200,
     cuisine: 'American',
+    rating: 3,
     content: `
 # Cottage Cheese & Fruit
 
@@ -179,9 +173,8 @@ export const dinnerRecipes: Recipe[] = [
     title: 'Baked Salmon',
     fileName: 'baked-salmon.md',
     type: 'dinner',
-    prepTime: 25,
-    calories: 450,
     cuisine: 'Scandinavian',
+    rating: 7,
     content: `
 # Baked Salmon
 
@@ -210,9 +203,8 @@ A healthy, omega-3 rich dinner option.
     title: 'Chicken Stir Fry',
     fileName: 'chicken-stir-fry.md',
     type: 'dinner',
-    prepTime: 20,
-    calories: 380,
     cuisine: 'Asian Fusion',
+    rating: 5,
     content: `
 # Chicken Stir Fry
 
@@ -243,9 +235,8 @@ A quick and protein-rich dinner.
     title: 'Vegetarian Pasta',
     fileName: 'vegetarian-pasta.md',
     type: 'dinner',
-    prepTime: 30,
-    calories: 420,
     cuisine: 'Italian',
+    rating: 6,
     content: `
 # Vegetarian Pasta
 
@@ -276,9 +267,8 @@ A comforting pasta dish loaded with vegetables.
     title: 'Turkey Burgers',
     fileName: 'turkey-burgers.md',
     type: 'dinner',
-    prepTime: 25,
-    calories: 350,
     cuisine: 'American',
+    rating: 4,
     content: `
 # Turkey Burgers
 
@@ -307,9 +297,8 @@ Lean and flavorful burgers perfect for a family dinner.
     title: 'Quinoa Bowl',
     fileName: 'quinoa-bowl.md',
     type: 'dinner',
-    prepTime: 20,
-    calories: 400,
     cuisine: 'Modern',
+    rating: 5,
     content: `
 # Quinoa Bowl
 
@@ -339,9 +328,8 @@ A nutritious grain bowl packed with protein and vegetables.
     title: 'Tofu Curry',
     fileName: 'tofu-curry.md',
     type: 'dinner',
-    prepTime: 35,
-    calories: 380,
     cuisine: 'Indian',
+    rating: 6,
     content: `
 # Tofu Curry
 
