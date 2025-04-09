@@ -77,21 +77,25 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
           Meal Plan for {hasMealPlan ? mealPlan.length : 0} Day{hasMealPlan && mealPlan.length !== 1 ? 's' : ''}
         </h2>
-        <div className="mt-3 sm:mt-0 flex space-x-3">
+        <div className="mt-3 sm:mt-0 flex flex-wrap gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={onGoBack}
+            size="sm"
+            className="flex-1 sm:flex-none"
           >
             Edit Selection
           </Button>
           <Button
             onClick={onViewGroceryList}
             variant="secondary"
+            size="sm"
+            className="flex-1 sm:flex-none"
           >
             View Grocery List
           </Button>
@@ -99,7 +103,8 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
             <Button
               onClick={handleSavePlan}
               disabled={isLoading || planSaved}
-              className="gap-1"
+              className="gap-1 flex-1 sm:flex-none"
+              size="sm"
             >
               {isLoading ? "Saving..." : planSaved ? (
                 <>
@@ -115,12 +120,13 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
 
       {/* Weekly Meal Plan Table */}
       {!hasMealPlan ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <p className="text-amber-800">No meal plan has been generated yet. Please select recipes and generate a plan.</p>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6 text-center">
+          <p className="text-amber-800 text-sm sm:text-base">No meal plan has been generated yet. Please select recipes and generate a plan.</p>
           <Button 
             variant="outline" 
-            className="mt-4"
+            className="mt-3 sm:mt-4"
             onClick={onGoBack}
+            size="sm"
           >
             Select Recipes
           </Button>
@@ -130,23 +136,23 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
           <Table>
             <TableHeader className="bg-gray-50">
               <TableRow>
-                <TableHead className="w-[120px]">Day</TableHead>
-                <TableHead>
+                <TableHead className="w-[80px] sm:w-[120px] p-2 sm:p-4">Day</TableHead>
+                <TableHead className="p-2 sm:p-4">
                   <div className="flex items-center">
-                    <SunIcon className="mr-1 h-4 w-4 text-amber-500" />
-                    Breakfast
+                    <SunIcon className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+                    <span className="text-xs sm:text-sm">Breakfast</span>
                   </div>
                 </TableHead>
-                <TableHead>
+                <TableHead className="p-2 sm:p-4">
                   <div className="flex items-center">
-                    <SunsetIcon className="mr-1 h-4 w-4 text-orange-500" />
-                    Lunch
+                    <SunsetIcon className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
+                    <span className="text-xs sm:text-sm">Lunch</span>
                   </div>
                 </TableHead>
-                <TableHead>
+                <TableHead className="p-2 sm:p-4">
                   <div className="flex items-center">
-                    <MoonIcon className="mr-1 h-4 w-4 text-indigo-500" />
-                    Dinner
+                    <MoonIcon className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
+                    <span className="text-xs sm:text-sm">Dinner</span>
                   </div>
                 </TableHead>
               </TableRow>
@@ -154,35 +160,33 @@ export default function MealPlan({ mealPlan, onGoBack, onViewGroceryList }: Meal
             <TableBody>
               {mealPlan.map((day, index) => (
                 <TableRow key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium p-2 sm:p-4">
                     <div className="flex flex-col">
-                      <span>{getDayName(day.day)}</span>
-                      <span className="text-xs text-gray-500">{getDayDate(day.day)}</span>
+                      <span className="text-xs sm:text-sm">{getDayName(day.day)}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500">{getDayDate(day.day)}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="p-2 sm:p-4">
                     {day.breakfast && (
                       <div className="flex items-center">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                        <span>{day.breakfast.title}</span>
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full mr-1 sm:mr-2"></span>
+                        <span className="text-xs sm:text-sm">{day.breakfast.title}</span>
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {day.lunch ? (
+                  <TableCell className="p-2 sm:p-4">
+                    {day.lunch && (
                       <div className="flex items-center">
-                        <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                        <span>{day.lunch.title}</span>
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full mr-1 sm:mr-2"></span>
+                        <span className="text-xs sm:text-sm">{day.lunch.title}</span>
                       </div>
-                    ) : (
-                      <span className="text-gray-400 italic">No lunch</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="p-2 sm:p-4">
                     {day.dinner && (
                       <div className="flex items-center">
-                        <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
-                        <span>{day.dinner.title}</span>
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-500 rounded-full mr-1 sm:mr-2"></span>
+                        <span className="text-xs sm:text-sm">{day.dinner.title}</span>
                       </div>
                     )}
                   </TableCell>

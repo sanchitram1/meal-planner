@@ -85,46 +85,53 @@ export default function GroceryList({ groceryList, onViewMealPlan }: GroceryList
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Grocery List</h2>
-        <div className="mt-3 sm:mt-0 flex space-x-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Grocery List</h2>
+        <div className="mt-3 sm:mt-0 flex flex-wrap gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={onViewMealPlan}
+            size="sm"
+            className="flex-1 sm:flex-none"
           >
             View Meal Plan
           </Button>
           <Button
             onClick={handleCopyList}
-            className="gap-1"
+            className="gap-1 flex-1 sm:flex-none"
+            size="sm"
           >
-            <Clipboard className="h-4 w-4" /> Copy List
+            <Clipboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+            <span className="sm:inline">Copy List</span>
           </Button>
           <Button
             onClick={handleShareList}
             variant="secondary"
-            className="gap-1"
+            className="gap-1 flex-1 sm:flex-none"
+            size="sm"
           >
-            <Share2 className="h-4 w-4" /> Share
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+            <span className="sm:inline">Share</span>
           </Button>
         </div>
       </div>
 
       {/* Grocery List Categories */}
       {!hasItems ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <p className="text-amber-800">No grocery list has been generated yet. Please create a meal plan first.</p>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6 text-center">
+          <p className="text-amber-800 text-sm sm:text-base">No grocery list has been generated yet. Please create a meal plan first.</p>
           <Button 
             variant="outline" 
-            className="mt-4"
+            className="mt-3 sm:mt-4"
             onClick={onViewMealPlan}
+            size="sm"
           >
             Create Meal Plan
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {(Object.entries(groceryList) as [GroceryCategory, Record<string, GroceryItem>][])
             .filter(([_, items]) => Object.keys(items).length > 0)
             .map(([category, items]) => {
@@ -133,19 +140,19 @@ export default function GroceryList({ groceryList, onViewMealPlan }: GroceryList
               return (
                 <Accordion type="single" collapsible className="w-full" key={category} defaultValue={category}>
                   <AccordionItem value={category}>
-                    <AccordionTrigger className={`${bgColor} ${textColor} p-3 rounded-lg`}>
-                      <div className="flex items-center text-lg font-medium">
-                        <span className="mr-2">{icon}</span>
+                    <AccordionTrigger className={`${bgColor} ${textColor} p-2 sm:p-3 rounded-lg`}>
+                      <div className="flex items-center text-base sm:text-lg font-medium">
+                        <span className="mr-1.5 sm:mr-2">{icon}</span>
                         <span className="capitalize">{category}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="mt-3 bg-white rounded-lg shadow">
+                      <div className="mt-2 sm:mt-3 bg-white rounded-lg shadow">
                         <ul className="divide-y divide-gray-200">
                           {Object.values(items).map((item) => {
                             const key = `${category}:${item.name}`;
                             return (
-                              <li key={item.name} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                              <li key={item.name} className="px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between hover:bg-gray-50">
                                 <div className="flex items-center">
                                   <Checkbox
                                     id={key}
@@ -154,12 +161,12 @@ export default function GroceryList({ groceryList, onViewMealPlan }: GroceryList
                                   />
                                   <label
                                     htmlFor={key}
-                                    className={`ml-3 ${checkedItems[key] ? 'line-through text-gray-400' : 'text-gray-900'}`}
+                                    className={`ml-2 sm:ml-3 text-sm sm:text-base ${checkedItems[key] ? 'line-through text-gray-400' : 'text-gray-900'}`}
                                   >
                                     {item.name}
                                   </label>
                                 </div>
-                                <span className="text-sm text-gray-600">{item.amount}</span>
+                                <span className="text-xs sm:text-sm text-gray-600">{item.amount}</span>
                               </li>
                             );
                           })}
