@@ -25,21 +25,26 @@ export function parseRecipeFile(filePath: string): Recipe | null {
         }))
       : [];
     
-    // Construct recipe object
+    // Construct recipe object with all required fields
     const recipe: Recipe = {
       title: data.title || path.basename(filePath, '.md'),
       fileName: path.basename(filePath),
       type: data.type || 'other',
-      cookTime: data.cookTime || data.cook_time,
-      servings: data.servings,
-      serves: data.serves,
-      cuisine: Array.isArray(data.type) ? data.type[0]?.replace(/\[\[(.*?)\]\]/, '$1') : typeof data.type === 'string' ? data.type.replace(/\[\[(.*?)\]\]/, '$1') : data.cuisine,
-      author: Array.isArray(data.author) ? data.author[0]?.replace(/\[\[(.*?)\]\]/, '$1') : typeof data.author === 'string' ? data.author.replace(/\[\[(.*?)\]\]/, '$1') : undefined,
+      serves: data.serves || data.servings || 4,
+      cuisine: Array.isArray(data.type) ? data.type[0]?.replace(/\[\[(.*?)\]\]/, '$1') : 
+               typeof data.type === 'string' ? data.type.replace(/\[\[(.*?)\]\]/, '$1') : 
+               data.cuisine || 'Other',
+      author: Array.isArray(data.author) ? data.author[0]?.replace(/\[\[(.*?)\]\]/, '$1') : 
+              typeof data.author === 'string' ? data.author.replace(/\[\[(.*?)\]\]/, '$1') : 
+              'Unknown',
       rating: data.rating || Math.floor(Math.random() * 5) + 3, // Default to a random rating between 3-7 if not provided
-      content,
+      content: data.content || content || '',
       ingredients,
-      tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : []),
+      tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : ['other']),
+      last: data.last ? new Date(data.last) : new Date(), // Use current date if not provided
     };
+    
+    // Note: We kept the required fields in the schema but can add extra fields if needed in the future
 
     // Validate recipe with zod
     const result = recipeSchema.safeParse(recipe);

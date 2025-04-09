@@ -28,13 +28,28 @@ export class DbStorage implements IStorage {
     let dbRecipes;
     
     if (type === 'breakfast' || type === 'dinner') {
-      // Use DB or application-level filtering based on 'type' tag
+      // First, check if we have any recipes where the cuisine exactly matches the type
+      const cuisineRecipes = await db.select()
+        .from(recipesTable)
+        .where(eq(recipesTable.cuisine, type));
+      
+      // Also get recipes that have the type in their tags
       const allRecipes = await db.select().from(recipesTable);
-      dbRecipes = allRecipes.filter(recipe => {
+      const tagRecipes = allRecipes.filter(recipe => {
         // Check if the tags array contains the type (case-insensitive)
         const tags = recipe.tags;
         return tags.some(tag => tag.toLowerCase() === type.toLowerCase());
       });
+      
+      // Combine both sets, ensuring no duplicates
+      const recipeIds = new Set();
+      dbRecipes = [...cuisineRecipes, ...tagRecipes].filter(recipe => {
+        if (recipeIds.has(recipe.id)) return false;
+        recipeIds.add(recipe.id);
+        return true;
+      });
+      
+      console.log(`Found ${cuisineRecipes.length} ${type} recipes by cuisine and ${tagRecipes.length} by tags (${dbRecipes.length} total unique)`);
     } else {
       // Fallback to filtering by cuisine if not breakfast/dinner
       dbRecipes = await db.select().from(recipesTable).where(eq(recipesTable.cuisine, type));
@@ -181,7 +196,7 @@ function inArray(column: any, values: number[]): SQL<unknown> {
   }
   
   // For multiple values, construct OR conditions manually
-  let condition = eq(column, values[0]);
+  let condition: SQL<unknown> = eq(column, values[0]);
   for (let i = 1; i < values.length; i++) {
     condition = or(condition, eq(column, values[i]));
   }
