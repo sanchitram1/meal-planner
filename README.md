@@ -1,6 +1,6 @@
 # Meal Planning App
 
-[![Run on Replit](https://replit.com/badge?caption=Run%20on%20Replit)](https://replit.com/new/github/sanchitram1/RecipePlannerPro)
+[![Run on Replit](https://replit.com/badge?caption=Run%20on%20Replit)](https://replit.com/new/github/sanchitram1/meal-planner)
 
 
 A meal planning application that helps users select recipes, create weekly meal plans, and generate grocery lists. Now with support for importing Obsidian markdown recipes!
