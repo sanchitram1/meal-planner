@@ -149,27 +149,57 @@ export default function GroceryList({ groceryList, onViewMealPlan }: GroceryList
                     <AccordionContent>
                       <div className="mt-2 sm:mt-3 bg-white rounded-lg shadow">
                         <ul className="divide-y divide-gray-200">
-                          {Object.values(items).map((item) => {
-                            const key = `${category}:${item.name}`;
-                            return (
-                              <li key={item.name} className="px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between hover:bg-gray-50">
-                                <div className="flex items-center">
-                                  <Checkbox
-                                    id={key}
-                                    checked={!!checkedItems[key]}
-                                    onCheckedChange={() => handleCheckItem(category as GroceryCategory, item.name)}
-                                  />
-                                  <label
-                                    htmlFor={key}
-                                    className={`ml-2 sm:ml-3 text-sm sm:text-base ${checkedItems[key] ? 'line-through text-gray-400' : 'text-gray-900'}`}
-                                  >
-                                    {item.name}
-                                  </label>
-                                </div>
-                                <span className="text-xs sm:text-sm text-gray-600">{item.amount}</span>
-                              </li>
-                            );
-                          })}
+                          {Object.values(items)
+                            // Sort items: checked items at the bottom, then alphabetically
+                            .sort((a, b) => {
+                              const keyA = `${category}:${a.name}`;
+                              const keyB = `${category}:${b.name}`;
+                              
+                              // First sort by checked status
+                              if (!!checkedItems[keyA] !== !!checkedItems[keyB]) {
+                                return !!checkedItems[keyA] ? 1 : -1;
+                              }
+                              
+                              // Then sort alphabetically
+                              return a.name.localeCompare(b.name);
+                            })
+                            .map((item) => {
+                              const key = `${category}:${item.name}`;
+                              return (
+                                <li key={item.name} className="px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between hover:bg-gray-50">
+                                  <div className="flex items-center">
+                                    <Checkbox
+                                      id={key}
+                                      checked={!!checkedItems[key]}
+                                      onCheckedChange={() => handleCheckItem(category as GroceryCategory, item.name)}
+                                    />
+                                    <label
+                                      htmlFor={key}
+                                      className={`ml-2 sm:ml-3 text-sm sm:text-base ${checkedItems[key] ? 'line-through text-gray-400' : 'text-gray-900'}`}
+                                    >
+                                      {item.name}
+                                    </label>
+                                  </div>
+                                  <span className="text-xs sm:text-sm text-gray-600 font-medium">
+                                    {/* Handle different types of amount displays */}
+                                    {item.amount.includes(' + ') ? (
+                                      <div className="flex flex-col items-end">
+                                        {item.amount.split(' + ').map((amount, i) => (
+                                          <span key={i} className={i > 0 ? "text-gray-500" : ""}>
+                                            {amount}
+                                            {i < item.amount.split(' + ').length - 1 && ' +'}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : item.amount.toLowerCase().includes('as needed') ? (
+                                      <span className="italic">as needed</span>
+                                    ) : (
+                                      item.amount
+                                    )}
+                                  </span>
+                                </li>
+                              );
+                            })}
                         </ul>
                       </div>
                     </AccordionContent>

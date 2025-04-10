@@ -195,33 +195,82 @@ export class DbStorage implements IStorage {
       other: {}
     };
     
+    // Create a map to store ingredient amounts by name and unit for aggregation
+    const ingredientAmountsMap: Record<string, Array<ReturnType<typeof parseAmount>>> = {};
+    
     // Process each recipe's ingredients
     dbRecipes.forEach(dbRecipe => {
       // Convert database recipe to Recipe type
       const ingredients = dbRecipe.ingredients as unknown as Ingredient[];
       
       ingredients.forEach(ingredient => {
-        const category = (ingredient.category as GroceryCategory) || 'other';
+        // Ensure ingredient has a category, defaulting to categorizeIngredient if not provided
+        const category = (ingredient.category as GroceryCategory) || categorizeIngredient(ingredient.name);
         
-        // Add or update the ingredient in the appropriate category
-        if (groceryList[category][ingredient.name]) {
-          // If ingredient already exists, we could implement logic to combine quantities
-          // For simplicity, we'll just note that it's needed in multiple recipes
-          const existing = groceryList[category][ingredient.name];
-          groceryList[category][ingredient.name] = {
-            ...existing,
-            amount: `${existing.amount} + ${ingredient.amount}`
-          };
-        } else {
+        // Parse ingredient amount into structured data
+        const enhancedIngredient = enhanceIngredient(ingredient);
+        const parsedAmount = enhancedIngredient.parsedAmount;
+        
+        // Create a normalized key for aggregation
+        // We combine name and unit (if present) to group similar ingredients
+        const unitKey = parsedAmount.unit || 'unspecified';
+        const aggregationKey = `${ingredient.name.toLowerCase()}:${unitKey}`;
+        
+        // Store the parsed amount for later aggregation
+        if (!ingredientAmountsMap[aggregationKey]) {
+          ingredientAmountsMap[aggregationKey] = [];
+        }
+        ingredientAmountsMap[aggregationKey].push(parsedAmount);
+        
+        // If this is the first time we've seen this ingredient,
+        // initialize it in the grocery list
+        if (!groceryList[category][ingredient.name]) {
           groceryList[category][ingredient.name] = {
             name: ingredient.name,
-            amount: ingredient.amount,
+            amount: ingredient.amount, // Will be updated later
             checked: false,
             category
           };
         }
       });
     });
+    
+    // Aggregate amounts for each ingredient
+    for (const [aggregationKey, amounts] of Object.entries(ingredientAmountsMap)) {
+      const [ingredientName, _] = aggregationKey.split(':');
+      
+      // Find which category this ingredient belongs to
+      let ingredientCategory: GroceryCategory | undefined;
+      let ingredientFullName: string | undefined;
+      
+      // Look for the ingredient in all categories
+      Object.entries(groceryList).forEach(([category, items]) => {
+        Object.keys(items).forEach(itemName => {
+          if (itemName.toLowerCase() === ingredientName || 
+              itemName.toLowerCase().includes(ingredientName)) {
+            ingredientCategory = category as GroceryCategory;
+            ingredientFullName = itemName;
+          }
+        });
+      });
+      
+      if (!ingredientCategory || !ingredientFullName) {
+        continue; // Skip if we can't find the ingredient
+      }
+      
+      // Try to aggregate the amounts
+      const aggregatedAmount = aggregateAmounts(amounts);
+      
+      if (aggregatedAmount && aggregatedAmount.quantity !== null) {
+        // If we successfully aggregated with a numeric value, use the structured display
+        groceryList[ingredientCategory][ingredientFullName].amount = aggregatedAmount.display;
+      } else if (amounts.length > 1) {
+        // If we couldn't aggregate but have multiple amounts, join them with a plus
+        const amountString = amounts.map(a => a.display).join(' + ');
+        groceryList[ingredientCategory][ingredientFullName].amount = amountString;
+      }
+      // If there's only one amount, we already set it initially
+    }
     
     return groceryList;
   }
