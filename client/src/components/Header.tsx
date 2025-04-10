@@ -23,7 +23,7 @@ export function Header({ currentView, onViewChange }: HeaderProps) {
             className={`text-gray-900 ${currentView === 'select' ? 'bg-gray-100' : ''}`}
           >
             <Home className="text-primary h-5 w-5" />
-            <span className="ml-1.5 font-semibold">MealMinder</span>
+            <span className="ml-1.5 font-semibold">Meal Prep</span>
           </Button>
         </div>
         

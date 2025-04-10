@@ -142,5 +142,5 @@ The application will be available at http://localhost:5000.
 
 ### UX
 
-- remove `food` and recipes on rendering within info page
-- remove rating
+- [x] remove `food` and recipes on rendering within info page
+- [x] remove rating
