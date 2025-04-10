@@ -4,6 +4,7 @@ import { type Recipe, type Ingredient, type GroceryList, GroceryCategory } from 
 import { recipes as recipesTable, mealPlans as mealPlansTable } from "@shared/schema";
 import { eq, or, and, SQL, sql as drizzleSql } from 'drizzle-orm';
 import { IStorage } from './storage';
+import { enhanceIngredient, parseAmount, aggregateAmounts, categorizeIngredient } from './ingredientParser';
 
 // Initialize database connection with neon-http driver
 const sql = neon(process.env.DATABASE_URL!);
